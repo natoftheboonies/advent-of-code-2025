@@ -1,4 +1,5 @@
-import fs from "fs";
+// Make this file a module to allow top-level await
+export {};
 
 let sample = `11-22,95-115,998-1012,1188511880-1188511890,222220-222224,
 1698522-1698528,446443-446449,38593856-38593862,565653-565659,
@@ -8,17 +9,21 @@ let input = sample;
 // read 02.txt for real input
 input = (await Bun.file("02.txt").text()).trim().split(",");
 
-let ranges = input.map((line) => {
+interface NumberRange {
+  start: number;
+  end: number;
+  range: number;
+}
+
+let ranges: NumberRange[] = input.map((line) => {
   let [start, end] = line.split("-").map(Number);
   return { start, end, range: end - start };
 });
 
-// console.log(ranges);
-
 // within range, find numbers which are 2 repeated patterns
 // for example, between 43918886-44100815 we have 44004400, 44014441, 44024442, ...
-function findPatterns(start, end) {
-  let patterns = [];
+function findPatterns(start: number, end: number): number[] {
+  let patterns: number[] = [];
   for (let n = start; n <= end; n++) {
     let s = n.toString();
     if (s.length % 2 === 0) {
@@ -33,9 +38,6 @@ function findPatterns(start, end) {
   return patterns;
 }
 
-// let foo = findPatterns(43918886, 44100815);
-// console.log(foo);
-
 let sum = ranges
   .map(({ start, end }) => {
     let patterns = findPatterns(start, end);
@@ -46,8 +48,8 @@ console.log("part1:", sum);
 
 // next, we find other patterns, like ABCABC, ABABAB, AAAAA etc.
 // for example, 824824821-824824827 has 824824824.
-function findOtherPatterns(start, end) {
-  let patterns = [];
+function findOtherPatterns(start: number, end: number): number[] {
+  let patterns: number[] = [];
   for (let n = start; n <= end; n++) {
     let s = n.toString();
     let len = s.length;

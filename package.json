@@ -1,0 +1,7 @@
+{
+  "name": "advent-of-code-2025",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

@@ -1,4 +1,4 @@
-import fs from "fs";
+export {};
 
 let sample = `L68
 L30
@@ -13,11 +13,21 @@ L82`.split("\n");
 
 let input = sample;
 // read 01.txt for real input
-input = fs.readFileSync("01.txt", "utf8").trim().split("\n");
+const inputFile = Bun.file("01.txt");
+input = (await inputFile.text()).trim().split("\n");
 
-let moves = input.map((line) => {
-  let [_, dir, dist] = line.match(/([LR])(\d+)/);
-  return { dir, dist: Number(dist) };
+interface Move {
+  dir: "L" | "R";
+  dist: number;
+}
+
+let moves: Move[] = input.map((line) => {
+  const m = line.match(/([LR])(\d+)/);
+  if (!m) throw new Error(`Invalid input line: ${line}`);
+  let [, dir, dist] = m;
+  // narrow the dir to the specific union type so TypeScript accepts it
+  const dirTyped = dir as "L" | "R";
+  return { dir: dirTyped, dist: Number(dist) };
 });
 
 let counter = 0;
@@ -71,8 +81,4 @@ moves.forEach((move) => {
 
 console.log("part1:", counter);
 console.log("part2:", counter + counter2);
-// part2: 6581 too low
-// part2: 7034 too high
-// part2: 6880 too high
-// part2: 6680 is also wrong
-// part2: 6789 is correct!
+
