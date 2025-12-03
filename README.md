@@ -1,0 +1,1 @@
+Playing [Advent of Code 2025](https://adventofcode.com/2025) with TypeScript and [Bun](https://bun.sh/).
