@@ -60,3 +60,28 @@ for (let row = 0; row < hats.length; row++) {
 }
 
 console.log("part1:", splitCount);
+
+const memo = new Map<string, number>();
+function countTimelines(row: number, col: number): number {
+  const key = `${row},${col}`;
+  if (memo.has(key)) return memo.get(key)!;
+
+  if (row >= hats.length) {
+    memo.set(key, 1);
+    return 1;
+  }
+
+  let timelines = 0;
+  if (hats[row].has(col)) {
+    timelines += countTimelines(row + 1, col - 1);
+    timelines += countTimelines(row + 1, col + 1);
+  } else {
+    timelines += countTimelines(row + 1, col);
+  }
+
+  memo.set(key, timelines);
+  return timelines;
+}
+
+let part2 = countTimelines(0, start);
+console.log("part2:", part2);
