@@ -119,3 +119,46 @@ const part1 =
   constellations[0].size * constellations[1].size * constellations[2].size;
 
 console.log("part1:", part1);
+
+// part 2: continue until all points are connected
+for (const pair of pairs.slice(threshold)) {
+  let { coordsA, coordsB } = pair;
+  let foundConstellation = false;
+  for (let constellation of constellations) {
+    if (constellation.has(coordsA) || constellation.has(coordsB)) {
+      constellation.add(coordsA);
+      constellation.add(coordsB);
+      foundConstellation = true;
+      break;
+    }
+  }
+  if (!foundConstellation) {
+    constellations.push(new Set([coordsA, coordsB]));
+  }
+  // merge constellations that share points
+  let merged = true;
+  while (merged) {
+    merged = false;
+    for (let i = 0; i < constellations.length; i++) {
+      for (let j = i + 1; j < constellations.length; j++) {
+        let constellationA = constellations[i];
+        let constellationB = constellations[j];
+        if (
+          Array.from(constellationA).some((point) => constellationB.has(point))
+        ) {
+          // merge
+          constellations[i] = new Set([...constellationA, ...constellationB]);
+          constellations.splice(j, 1);
+          merged = true;
+          break;
+        }
+      }
+      if (merged) break;
+    }
+  }
+  if (constellations.length === 1) {
+    console.log("All points connected at distance:", pair.distance);
+    console.log("part2:", pair.coordsA.x * pair.coordsB.x);
+    break;
+  }
+}
