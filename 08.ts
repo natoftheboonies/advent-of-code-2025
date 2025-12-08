@@ -50,11 +50,11 @@ class Junction {
 
 const parsed = puzzle
   .split("\n")
+  .filter(Boolean)
   .map((line) => line.split(",").map(Number))
   .map((coords) => new Junction(coords[0], coords[1], coords[2]));
 
-//console.log("parsed:", parsed);
-
+// compute all pairwise distances
 let pairs: { coordsA: Junction; coordsB: Junction; distance: number }[] = [];
 for (let i = 0; i < parsed.length; i++) {
   for (let j = i + 1; j < parsed.length; j++) {
@@ -66,11 +66,11 @@ for (let i = 0; i < parsed.length; i++) {
 }
 pairs.sort((a, b) => a.distance - b.distance);
 
-// group into constellations
-let constellations: Set<Junction>[] = [];
-for (const pair of pairs.slice(0, threshold)) {
-  //console.log("pair:", pair);
-  let { coordsA, coordsB } = pair;
+function addPairToConstellations(
+  constellations: Set<Junction>[],
+  coordsA: Junction,
+  coordsB: Junction
+) {
   let foundConstellation = false;
   for (let constellation of constellations) {
     if (constellation.has(coordsA) || constellation.has(coordsB)) {
@@ -84,58 +84,8 @@ for (const pair of pairs.slice(0, threshold)) {
     constellations.push(new Set([coordsA, coordsB]));
   }
 }
-console.log("constellations before merge:", constellations.length);
 
-// merge constellations that share points
-let merged = true;
-while (merged) {
-  merged = false;
-  for (let i = 0; i < constellations.length; i++) {
-    for (let j = i + 1; j < constellations.length; j++) {
-      let constellationA = constellations[i];
-      let constellationB = constellations[j];
-      if (
-        Array.from(constellationA).some((point) => constellationB.has(point))
-      ) {
-        // merge
-        constellations[i] = new Set([...constellationA, ...constellationB]);
-        constellations.splice(j, 1);
-        merged = true;
-        break;
-      }
-    }
-    if (merged) break;
-  }
-}
-
-constellations.sort((a, b) => b.size - a.size);
-
-console.log("constellations after merge:", constellations.length);
-for (let i = 0; i < constellations.length; i++) {
-  console.log("constellation detail:", constellations[i].size);
-}
-
-const part1 =
-  constellations[0].size * constellations[1].size * constellations[2].size;
-
-console.log("part1:", part1);
-
-// part 2: continue until all points are connected
-for (const pair of pairs.slice(threshold)) {
-  let { coordsA, coordsB } = pair;
-  let foundConstellation = false;
-  for (let constellation of constellations) {
-    if (constellation.has(coordsA) || constellation.has(coordsB)) {
-      constellation.add(coordsA);
-      constellation.add(coordsB);
-      foundConstellation = true;
-      break;
-    }
-  }
-  if (!foundConstellation) {
-    constellations.push(new Set([coordsA, coordsB]));
-  }
-  // merge constellations that share points
+function mergeConstellations(constellations: Set<Junction>[]) {
   let merged = true;
   while (merged) {
     merged = false;
@@ -156,8 +106,31 @@ for (const pair of pairs.slice(threshold)) {
       if (merged) break;
     }
   }
-  if (constellations.length === 1) {
-    console.log("All points connected at distance:", pair.distance);
+}
+
+// group into constellations
+let constellations: Set<Junction>[] = [];
+for (const pair of pairs.slice(0, threshold)) {
+  const { coordsA, coordsB } = pair;
+  addPairToConstellations(constellations, coordsA, coordsB);
+}
+
+mergeConstellations(constellations);
+
+constellations.sort((a, b) => b.size - a.size);
+
+const part1 =
+  constellations[0].size * constellations[1].size * constellations[2].size;
+
+console.log("part1:", part1);
+
+// part 2: continue until all points are connected
+for (const pair of pairs.slice(threshold)) {
+  const { coordsA, coordsB } = pair;
+  addPairToConstellations(constellations, coordsA, coordsB);
+  mergeConstellations(constellations);
+
+  if (constellations.length === 1 && constellations[0].size === parsed.length) {
     console.log("part2:", pair.coordsA.x * pair.coordsB.x);
     break;
   }
