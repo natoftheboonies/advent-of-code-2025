@@ -3,5 +3,11 @@
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest"
+  },
+  "dependencies": {
+    "z3-solver": "^4.15.4"
+  },
+  "peerDependencies": {
+    "z3": "^1.0.43"
   }
 }
