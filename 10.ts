@@ -7,7 +7,7 @@ const sample = `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 let puzzle = sample;
 const puzzleFile = Bun.file("10.txt");
 const input = await puzzleFile.text();
-puzzle = input;
+//puzzle = input;
 
 // parse input
 const lines = puzzle.split("\n").filter(Boolean);
@@ -87,3 +87,45 @@ for (const { grid, operations } of parsedLines) {
   sumMinSteps += foundSteps;
 }
 console.log("part1:", sumMinSteps);
+
+// part 2
+// interpret the numbers in curly braces as a array of goal values to reach instead of the grid value.
+// each operation now increments corresponding bits of the array.
+// e.g if the array is [3,5,4,7] and the operation is (1,3), then the new array is [3+0, 5+1, 4+0, 7+1] = [3,6,4,8]
+// we need to find the minimum number of steps to reach all of the goal values from the initial state (array of zeros).
+// as there are no negative numbers, we can aboort early if any value exceeds the goal value.
+let sumMinStepsPart2 = 0;
+for (const { numbers: goals, operations } of parsedLines) {
+  const initialState = new Array(goals.length).fill(0);
+  const queue: Array<{ state: number[]; steps: number }> = [
+    { state: initialState, steps: 0 },
+  ];
+  const visited = new Set<string>([initialState.join(",")]);
+  let foundSteps = -1;
+
+  while (queue.length > 0) {
+    const { state, steps } = queue.shift()!;
+    if (state.every((val, idx) => val === goals[idx])) {
+      foundSteps = steps;
+      break;
+    }
+    for (const op of operations) {
+      const newState = state.map((val, idx) =>
+        (op & (1 << idx)) !== 0 ? val + 1 : val
+      );
+      // abort early if any value exceeds the goal
+      if (newState.some((val, idx) => val > goals[idx])) {
+        continue;
+      }
+      const stateKey = newState.join(",");
+      if (!visited.has(stateKey)) {
+        visited.add(stateKey);
+        queue.push({ state: newState, steps: steps + 1 });
+      }
+    }
+  }
+
+  console.log("min steps to reach goals", goals, "=", foundSteps);
+  sumMinStepsPart2 += foundSteps;
+}
+console.log("part2:", sumMinStepsPart2);
